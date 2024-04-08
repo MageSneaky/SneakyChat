@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Client
+namespace SneakyChat.Client
 {
     internal static class Program
     {
@@ -13,7 +13,8 @@ namespace Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Main());
+            new UserInput();
+            Application.Run();
         }
     }
 }

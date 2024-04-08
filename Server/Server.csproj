@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64;x86</Platforms>
+    <StartupObject>SneakyChat.Server.Program</StartupObject>
+    <Authors>MageSneaky</Authors>
+    <AssemblyName>SneakyChat Server</AssemblyName>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PackageProjectUrl>https://github.com/MageSneaky/SneakyChat</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

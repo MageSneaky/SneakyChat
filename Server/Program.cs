@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Server
+namespace SneakyChat.Server
 {
     class Program
     {
@@ -83,7 +83,7 @@ namespace Server
             {
                 respMessage.type = "login";
                 respMessage.username = recvMessage.username;
-                respMessage.message = "success";
+                respMessage.message = "connected";
             }
             else if (recvMessage.type == "message")
             {
@@ -94,7 +94,13 @@ namespace Server
             }
             else if (recvMessage.type == "disconnect")
             {
-                
+                Console.WriteLine("{0} disconnected", socket.RemoteEndPoint);
+                respMessage.type = "disconnect";
+                respMessage.username = recvMessage.username;
+                SendData(socket, new Message() { type = "logout" });
+                clientSockets.Remove(socket);
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
             }
             else
             {
@@ -106,7 +112,10 @@ namespace Server
             Console.WriteLine("Received: {0} ", data);
 
             sendToAll(respMessage);
-            socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
+            if (socket.Connected)
+            {
+                socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
+            }
         }
 
         private static void SendCallback(IAsyncResult asyncResult)
@@ -128,6 +137,7 @@ namespace Server
 
         private static void SendData(Socket socket, Message message)
         {
+            Console.WriteLine(message.dateTime);
             byte[] response = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(message));
             socket.BeginSend(response, 0, response.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }

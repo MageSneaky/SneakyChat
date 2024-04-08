@@ -1,16 +1,15 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Client
+namespace SneakyChat.Client
 {
     public partial class Main : Form
     {
@@ -19,27 +18,27 @@ namespace Client
         private static string ip = "127.0.0.1";
         private static int port = 5000;
         private static Socket clientSocket;
-        private string avatar;
-        private string username = "Sneaky";
+        private static Thread RequestLoopThread;
+        public string avatar;
+        public string username;
+        public About about;
         #endregion
 
         #region Constructor
         public Main()
         {
             InitializeComponent();
-            if (!System.IO.File.Exists("settings.ini"))
+            if (!settingsfile.KeyExists("ip") || !settingsfile.KeyExists("port"))
             {
-                settingsfile.Write("username", username);
                 settingsfile.Write("ip", ip);
                 settingsfile.Write("port", port.ToString());
             }
             else
             {
-                avatar = Base64Image(@"C:\Users\alleh\Docs\!C#_Projects\Chat\profile.png");
-                username = settingsfile.Read("username");
                 ip = settingsfile.Read("ip");
                 int.TryParse(settingsfile.Read("port"), out port);
             }
+            Console.WriteLine(avatar);
         }
         #endregion
 
@@ -47,17 +46,22 @@ namespace Client
         private void Main_Load(object sender, EventArgs e)
         {
             Connect();
-            Thread backgroundThread = new Thread(new ThreadStart(RequestLoop));
-            backgroundThread.Start();
+            if (clientSocket.Connected)
+            {
+                RequestLoopThread = new Thread(new ThreadStart(RequestLoop));
+                RequestLoopThread.Start();
+            }
         }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Message message = new Message();
-            message.type = "disconnect";
-            message.username = username;
-            clientSocket.Shutdown(SocketShutdown.Both);
-            clientSocket.Close();
+            if(clientSocket.Connected)
+            {
+                Message message = new Message();
+                message.type = "disconnect";
+                message.username = username;
+                SendMessage(message);
+            }
         }
 
         private void sendButton_Click(object sender, EventArgs e)
@@ -90,6 +94,17 @@ namespace Client
                 }
             }
         }
+
+        private void aboutButton_Click(object sender, EventArgs e)
+        {
+            if (about == null)
+            {
+                about = new About();
+                about.main = this;
+            }
+            about.Show();
+            about.Focus();
+        }
         #endregion
 
         #region Methods
@@ -99,31 +114,31 @@ namespace Client
 
             clientSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            int i = 0;
-            while (!clientSocket.Connected)
+            try
             {
-                try
-                {
-                    i++;
-                    clientSocket.Connect(ip, port);
-                }
-                catch (SocketException)
-                {
-                    Console.WriteLine("Attempts: {0}", i);
-                }
+                clientSocket.Connect(ip, port);
+            }
+            catch (SocketException)
+            {
+                connectionLabel.Text = "Disconnected";
+                connectionLabel.ForeColor = Color.Red;
+                sendButton.Enabled = false;
             }
 
-            Console.WriteLine("Connected to: {0} ", clientSocket.RemoteEndPoint.ToString());
+            if (clientSocket.Connected)
+            {
+                Console.WriteLine("Connected to: {0} ", clientSocket.RemoteEndPoint.ToString());
 
-            connectionLabel.Text = "Connected";
-            usernameLabel.Text = "as " + username;
-            connectionLabel.ForeColor = Color.Green;
+                connectionLabel.Text = "Connected";
+                usernameLabel.Text = "as " + username;
+                connectionLabel.ForeColor = Color.Green;
 
-            Message message = new Message();
-            message.type = "login";
-            message.username = username;
+                Message message = new Message();
+                message.type = "login";
+                message.username = username;
 
-            SendMessage(message);
+                SendMessage(message);
+            }
         }
 
         private void RequestLoop()
@@ -138,7 +153,15 @@ namespace Client
 
                 Console.WriteLine("Received: {0}", messageRecv);
 
-                if (received.type == "message")
+                if (received.type == "login" || received.type == "disconnect")
+                {
+                    CreateStatus(received);
+                }
+                else if (received.type == "logout")
+                {
+                    RequestLoopThread.Abort();
+                }
+                else if (received.type != "unknown")
                 {
                     CreateBubble(received);
                 }
@@ -147,7 +170,7 @@ namespace Client
 
         private void CreateBubble(Message received)
         {
-            if(messagesLayout.InvokeRequired)
+            if (messagesLayout.InvokeRequired)
             {
                 Action callback = delegate { CreateBubble(received); };
                 this.Invoke(callback);
@@ -164,52 +187,54 @@ namespace Client
             }
         }
 
+        private void CreateStatus(Message received)
+        {
+            if (messagesLayout.InvokeRequired)
+            {
+                Action callback = delegate { CreateStatus(received); };
+                this.Invoke(callback);
+            }
+            else
+            {
+                Status status = new Status();
+                string type;
+                switch (received.type)
+                {
+                    case ("login"):
+                        type = "Connected";
+                        break;
+                    case ("disconnect"):
+                        type = "Disconnected";
+                        break;
+                    default:
+                        type = "Connected";
+                        break;
+                }
+                status.statusLabel.Text = string.Format("{0} {1}", received.username, type) ;
+                status.Parent = messagesLayout;
+                status.Dock = DockStyle.Top;
+            }
+        }
+
         private void SendMessage(Message message)
         {
             byte[] messageSent = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(message));
             Console.WriteLine("Sent: {0}", JsonConvert.SerializeObject(message));
             clientSocket.Send(messageSent);
         }
-        private string Base64Image(string path)
+        #endregion
+
+        #region Title Bar Color
+        [DllImport("DwmApi")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, int[] attrValue, int attrSize);
+
+        protected override void OnHandleCreated(EventArgs e)
         {
-            using (Image image = Image.FromFile(path))
-            {
-                Image newimage = ResizeImage(image, 50, 50);
-                using (MemoryStream m = new MemoryStream())
-                {
-                    newimage.Save(m, image.RawFormat);
-                    byte[] imageBytes = m.ToArray();
-
-                    string base64String = Convert.ToBase64String(imageBytes);
-                    return base64String;
-                }
-            }
-        }
-        public static Bitmap ResizeImage(Image image, int width, int height)
-        {
-            var destRect = new Rectangle(0, 0, width, height);
-            var destImage = new Bitmap(width, height);
-
-            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
-
-            using (var graphics = Graphics.FromImage(destImage))
-            {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
-                }
-            }
-
-            return destImage;
+            if (DwmSetWindowAttribute(Handle, 19, new[] { 1 }, 4) != 0)
+                DwmSetWindowAttribute(Handle, 20, new[] { 1 }, 4);
         }
         #endregion
+
     }
 }
 

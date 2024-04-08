@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace Client
+namespace SneakyChat.Client
 {
     public partial class Bubble : UserControl
     {

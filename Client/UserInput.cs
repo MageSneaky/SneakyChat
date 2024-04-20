@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -55,7 +56,7 @@ namespace SneakyChat.Client
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            if (avatarFileDialog.FileName != "" && usernameTextbox.Text != "")
+            if (avatarFileDialog.FileName != "" && usernameTextbox.Text != "" && !char.IsWhiteSpace(usernameTextbox.Text, 0))
             {
                 avatar = Base64Image(avatarFileDialog.FileName);
                 username = usernameTextbox.Text;

@@ -8,17 +8,28 @@ namespace SneakyChat.Server
     class Program
     {
         #region Variables
-        private static int port = 5000;
+        private static IniFile settingsfile = new ("settings.ini");
         private static string ip = "127.0.0.1";
-        private static List<Socket> clientSockets = new List<Socket>();
+        private static int port = 5000;
+        private static List<Socket> clientSockets = [];
         private static Socket serverSocket;
 
-        private static byte[] buffer = new byte[32768];
+        private static byte[] buffer = new byte[65536];
         #endregion
 
         #region Constructor
-        static void Main(string[] args)
+        static void Main()
         {
+            if (!settingsfile.KeyExists("ip") || !settingsfile.KeyExists("port"))
+            {
+                settingsfile.Write("ip", ip);
+                settingsfile.Write("port", port.ToString());
+            }
+            else
+            {
+                ip = settingsfile.Read("ip");
+                int.TryParse(settingsfile.Read("port"), out port);
+            }
             Console.Title = string.Format("ChatServer running on {0}:{1}", ip, port.ToString());
             ExecuteServer();
             Console.ReadLine();
@@ -30,7 +41,7 @@ namespace SneakyChat.Server
         private static void ExecuteServer()
         {
             IPAddress ipAddress = IPAddress.Parse(ip);
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
+            IPEndPoint localEndPoint = new(ipAddress, port);
 
             serverSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
@@ -78,7 +89,7 @@ namespace SneakyChat.Server
             string data = Encoding.ASCII.GetString(dataBuffer);
 
             var recvMessage = JsonConvert.DeserializeObject<Message>(data);
-            Message respMessage = new Message();
+            Message respMessage = new();
             if (recvMessage.type == "login")
             {
                 respMessage.type = "login";
@@ -111,7 +122,7 @@ namespace SneakyChat.Server
 
             Console.WriteLine("Received: {0} ", data);
 
-            sendToAll(respMessage);
+            SendToAll(respMessage);
             if (socket.Connected)
             {
                 socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
@@ -137,12 +148,11 @@ namespace SneakyChat.Server
 
         private static void SendData(Socket socket, Message message)
         {
-            Console.WriteLine(message.dateTime);
             byte[] response = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(message));
             socket.BeginSend(response, 0, response.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }
 
-        private static void sendToAll(Message message)
+        private static void SendToAll(Message message)
         {
             foreach (Socket socket in clientSockets)
             {

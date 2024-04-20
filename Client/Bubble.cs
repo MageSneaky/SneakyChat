@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 
 namespace SneakyChat.Client
 {
@@ -7,7 +8,6 @@ namespace SneakyChat.Client
         public Bubble()
         {
             InitializeComponent();
-            this.ClientSize = new System.Drawing.Size(this.ClientSize.Width, (this.ClientSize.Height - messageText.Height) + (14 * (messageText.Lines.Length)));
         }
     }
 }

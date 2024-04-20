@@ -33,8 +33,9 @@
             this.connectionLabel = new System.Windows.Forms.Label();
             this.messageText = new System.Windows.Forms.RichTextBox();
             this.usernameLabel = new System.Windows.Forms.Label();
-            this.messagesLayout = new System.Windows.Forms.TableLayoutPanel();
             this.aboutButton = new System.Windows.Forms.Button();
+            this.settingsButton = new System.Windows.Forms.Button();
+            this.messagesLayout = new System.Windows.Forms.TableLayoutPanel();
             this.SuspendLayout();
             // 
             // sendButton
@@ -65,7 +66,7 @@
             // 
             // messageText
             // 
-            this.messageText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.messageText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.messageText.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(60)))));
             this.messageText.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -87,10 +88,42 @@
             this.usernameLabel.Size = new System.Drawing.Size(491, 20);
             this.usernameLabel.TabIndex = 4;
             // 
+            // aboutButton
+            // 
+            this.aboutButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.aboutButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("aboutButton.BackgroundImage")));
+            this.aboutButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.aboutButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.aboutButton.FlatAppearance.BorderSize = 0;
+            this.aboutButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
+            this.aboutButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.aboutButton.Location = new System.Drawing.Point(626, 3);
+            this.aboutButton.Name = "aboutButton";
+            this.aboutButton.Size = new System.Drawing.Size(30, 30);
+            this.aboutButton.TabIndex = 7;
+            this.aboutButton.UseVisualStyleBackColor = true;
+            this.aboutButton.Click += new System.EventHandler(this.aboutButton_Click);
+            // 
+            // settingsButton
+            // 
+            this.settingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.settingsButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("settingsButton.BackgroundImage")));
+            this.settingsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.settingsButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.settingsButton.FlatAppearance.BorderSize = 0;
+            this.settingsButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
+            this.settingsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.settingsButton.Location = new System.Drawing.Point(662, 3);
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(30, 30);
+            this.settingsButton.TabIndex = 8;
+            this.settingsButton.UseVisualStyleBackColor = true;
+            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
+            // 
             // messagesLayout
             // 
-            this.messagesLayout.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.messagesLayout.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.messagesLayout.AutoScroll = true;
             this.messagesLayout.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(50)))));
@@ -101,23 +134,7 @@
             this.messagesLayout.RowCount = 1;
             this.messagesLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.messagesLayout.Size = new System.Drawing.Size(676, 275);
-            this.messagesLayout.TabIndex = 5;
-            // 
-            // aboutButton
-            // 
-            this.aboutButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.aboutButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("aboutButton.BackgroundImage")));
-            this.aboutButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.aboutButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.aboutButton.FlatAppearance.BorderSize = 0;
-            this.aboutButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.aboutButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.aboutButton.Location = new System.Drawing.Point(662, 3);
-            this.aboutButton.Name = "aboutButton";
-            this.aboutButton.Size = new System.Drawing.Size(30, 30);
-            this.aboutButton.TabIndex = 7;
-            this.aboutButton.UseVisualStyleBackColor = true;
-            this.aboutButton.Click += new System.EventHandler(this.aboutButton_Click);
+            this.messagesLayout.TabIndex = 9;
             // 
             // Main
             // 
@@ -125,8 +142,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
             this.ClientSize = new System.Drawing.Size(704, 369);
-            this.Controls.Add(this.aboutButton);
             this.Controls.Add(this.messagesLayout);
+            this.Controls.Add(this.settingsButton);
+            this.Controls.Add(this.aboutButton);
             this.Controls.Add(this.connectionLabel);
             this.Controls.Add(this.usernameLabel);
             this.Controls.Add(this.messageText);
@@ -137,6 +155,7 @@
             this.Name = "Main";
             this.Text = "Chat";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_FormClosed);
             this.Load += new System.EventHandler(this.Main_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -148,8 +167,9 @@
         private System.Windows.Forms.Label connectionLabel;
         private System.Windows.Forms.RichTextBox messageText;
         private System.Windows.Forms.Label usernameLabel;
-        private System.Windows.Forms.TableLayoutPanel messagesLayout;
         private System.Windows.Forms.Button aboutButton;
+        private System.Windows.Forms.Button settingsButton;
+        private System.Windows.Forms.TableLayoutPanel messagesLayout;
     }
 }
 

@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
+using SneakyChat.Client.Properties;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -21,6 +23,7 @@ namespace SneakyChat.Client
         private static Thread RequestLoopThread;
         public string avatar;
         public string username;
+        public Settings settings;
         public About about;
         #endregion
 
@@ -38,7 +41,7 @@ namespace SneakyChat.Client
                 ip = settingsfile.Read("ip");
                 int.TryParse(settingsfile.Read("port"), out port);
             }
-            Console.WriteLine(avatar);
+            messagesLayout.Padding = new Padding(0, 0, SystemInformation.VerticalScrollBarWidth, 0);
         }
         #endregion
 
@@ -46,11 +49,6 @@ namespace SneakyChat.Client
         private void Main_Load(object sender, EventArgs e)
         {
             Connect();
-            if (clientSocket.Connected)
-            {
-                RequestLoopThread = new Thread(new ThreadStart(RequestLoop));
-                RequestLoopThread.Start();
-            }
         }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
@@ -62,6 +60,11 @@ namespace SneakyChat.Client
                 message.username = username;
                 SendMessage(message);
             }
+        }
+
+        private void Main_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
         }
 
         private void sendButton_Click(object sender, EventArgs e)
@@ -105,6 +108,15 @@ namespace SneakyChat.Client
             about.Show();
             about.Focus();
         }
+
+        private void settingsButton_Click(object sender, EventArgs e)
+        {
+            Settings settings = new Settings();
+            settings.main = this;
+            settings.Show();
+            settings.Focus();
+            this.Enabled = false;
+        }
         #endregion
 
         #region Methods
@@ -118,16 +130,18 @@ namespace SneakyChat.Client
             {
                 clientSocket.Connect(ip, port);
             }
-            catch (SocketException)
+            catch (Exception)
             {
                 connectionLabel.Text = "Disconnected";
                 connectionLabel.ForeColor = Color.Red;
                 sendButton.Enabled = false;
             }
 
-            if (clientSocket.Connected)
+            if (clientSocket.Connected && !(clientSocket.Poll(0, SelectMode.SelectRead) && clientSocket.Available == 0))
             {
                 Console.WriteLine("Connected to: {0} ", clientSocket.RemoteEndPoint.ToString());
+                RequestLoopThread = new Thread(new ThreadStart(RequestLoop));
+                RequestLoopThread.Start();
 
                 connectionLabel.Text = "Connected";
                 usernameLabel.Text = "as " + username;
@@ -145,25 +159,28 @@ namespace SneakyChat.Client
         {
             while (true)
             {
-                byte[] messageRecvBuffer = new byte[32768];
-
-                int byteRecv = clientSocket.Receive(messageRecvBuffer);
-                string messageRecv = Encoding.ASCII.GetString(messageRecvBuffer, 0, byteRecv);
-                var received = JsonConvert.DeserializeObject<Message>(messageRecv);
-
-                Console.WriteLine("Received: {0}", messageRecv);
-
-                if (received.type == "login" || received.type == "disconnect")
+                try
                 {
-                    CreateStatus(received);
+                    byte[] messageRecvBuffer = new byte[65536];
+
+                    int byteRecv = clientSocket.Receive(messageRecvBuffer);
+                    string messageRecv = Encoding.ASCII.GetString(messageRecvBuffer, 0, byteRecv);
+                    var received = JsonConvert.DeserializeObject<Message>(messageRecv);
+
+                    Console.WriteLine("Received: {0}", messageRecv);
+
+                    if (received.type == "login" || received.type == "disconnect")
+                    {
+                        CreateStatus(received);
+                    }
+                    else if (received.type != "unknown")
+                    {
+                        CreateBubble(received);
+                    }
                 }
-                else if (received.type == "logout")
+                catch (Exception)
                 {
-                    RequestLoopThread.Abort();
-                }
-                else if (received.type != "unknown")
-                {
-                    CreateBubble(received);
+                    Disconnect();
                 }
             }
         }
@@ -178,12 +195,17 @@ namespace SneakyChat.Client
             else
             {
                 Bubble bubble = new Bubble();
+                int i = ((messagesLayout.VerticalScroll.Maximum - messagesLayout.VerticalScroll.LargeChange) + 1);
                 bubble.avatarPictureBox.Image = Image.FromStream(new MemoryStream(Convert.FromBase64String(received.avatar)));
                 bubble.usernameLabel.Text = received.username;
                 bubble.messageText.Text = received.message;
                 bubble.timeDateLabel.Text = received.dateTime;
+                bubble.ClientSize = new Size(this.ClientSize.Width, (bubble.ClientSize.Height - bubble.messageText.Height) + (15 * (bubble.messageText.Lines.Length + 2)));
+                messagesLayout.RowCount = messagesLayout.RowCount + 1;
+                messagesLayout.RowStyles[messagesLayout.RowStyles.Count - 1].SizeType = SizeType.AutoSize;
                 bubble.Parent = messagesLayout;
                 bubble.Dock = DockStyle.Top;
+                GoToBottom(i);
             }
         }
 
@@ -197,6 +219,7 @@ namespace SneakyChat.Client
             else
             {
                 Status status = new Status();
+                int i = ((messagesLayout.VerticalScroll.Maximum - messagesLayout.VerticalScroll.LargeChange) + 1);
                 string type;
                 switch (received.type)
                 {
@@ -213,14 +236,68 @@ namespace SneakyChat.Client
                 status.statusLabel.Text = string.Format("{0} {1}", received.username, type) ;
                 status.Parent = messagesLayout;
                 status.Dock = DockStyle.Top;
+                GoToBottom(i);
+            }
+        }
+
+        private void Disconnect()
+        {
+            if (InvokeRequired)
+            {
+                Action callback = delegate { Disconnect(); };
+                this.Invoke(callback);
+            }
+            else
+            {
+                connectionLabel.Text = "Disconnected";
+                connectionLabel.ForeColor = Color.Red;
+                usernameLabel.Text = "";
+                sendButton.Enabled = false;
+                RequestLoopThread.Abort();
             }
         }
 
         private void SendMessage(Message message)
         {
-            byte[] messageSent = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(message));
-            Console.WriteLine("Sent: {0}", JsonConvert.SerializeObject(message));
-            clientSocket.Send(messageSent);
+            try
+            {
+                byte[] messageSent = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(message));
+                clientSocket.BeginSend(messageSent, 0, messageSent.Length, SocketFlags.None, SendCallback, null);
+                Console.WriteLine("Sent: {0}", JsonConvert.SerializeObject(message));
+            }
+            catch (SocketException)
+            {
+                Disconnect();
+            }
+            catch (ObjectDisposedException)
+            {
+                Disconnect();
+            }
+        }
+
+        private void SendCallback(IAsyncResult AR)
+        {
+            try
+            {
+                clientSocket.EndSend(AR);
+            }
+            catch (SocketException)
+            {
+                Disconnect();
+            }
+            catch (ObjectDisposedException)
+            {
+                Disconnect();
+            }
+        }
+
+        private void GoToBottom(int i)
+        {
+            if (messagesLayout.VerticalScroll.Value >= i)
+            {
+                messagesLayout.VerticalScroll.Value = ((messagesLayout.VerticalScroll.Maximum - messagesLayout.VerticalScroll.LargeChange) + 1);
+                messagesLayout.PerformLayout();
+            }
         }
         #endregion
 
@@ -234,7 +311,6 @@ namespace SneakyChat.Client
                 DwmSetWindowAttribute(Handle, 20, new[] { 1 }, 4);
         }
         #endregion
-
     }
 }
 

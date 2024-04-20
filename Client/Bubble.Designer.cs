@@ -85,7 +85,7 @@
             this.flowLayoutPanel1.ForeColor = System.Drawing.Color.White;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(56, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(353, 24);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(600, 24);
             this.flowLayoutPanel1.TabIndex = 5;
             this.flowLayoutPanel1.WrapContents = false;
             // 
@@ -102,7 +102,7 @@
             this.messageText.Location = new System.Drawing.Point(56, 31);
             this.messageText.Name = "messageText";
             this.messageText.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.messageText.Size = new System.Drawing.Size(353, 36);
+            this.messageText.Size = new System.Drawing.Size(600, 40);
             this.messageText.TabIndex = 6;
             this.messageText.TabStop = false;
             this.messageText.Text = "Cat\nmeow\ncat\nmeow\nPog\nDog\nMeow";
@@ -122,7 +122,7 @@
             this.Controls.Add(this.avatarPictureBox);
             this.MinimumSize = new System.Drawing.Size(250, 70);
             this.Name = "Bubble";
-            this.Size = new System.Drawing.Size(409, 70);
+            this.Size = new System.Drawing.Size(656, 70);
             ((System.ComponentModel.ISupportInitialize)(this.avatarPictureBox)).EndInit();
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();

@@ -101,6 +101,7 @@
             this.messageText.ForeColor = System.Drawing.Color.White;
             this.messageText.Location = new System.Drawing.Point(56, 31);
             this.messageText.Name = "messageText";
+            this.messageText.ReadOnly = true;
             this.messageText.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             this.messageText.Size = new System.Drawing.Size(600, 40);
             this.messageText.TabIndex = 6;

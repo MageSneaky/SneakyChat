@@ -1,7 +1,7 @@
 # SneakyChat
 <p align="center">
   <a href="https://sneaky.pink">
-    <img src="https://sneaky.pink/images/sneakychatbanner.jpg"></a>
+    <img src="https://images.sneaky.pink/sneakychatbanner.jpg"></a>
 </p>
 <p align="center">
 <a href="https://github.com/MageSneaky/SneakyChat/releases"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/MageSneaky/SneakyChat/total?color=pink&label=Downloads&logo=github&style=for-the-badge"></a>
